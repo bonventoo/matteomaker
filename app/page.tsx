@@ -1,406 +1,512 @@
 "use client";
+import { useEffect, useRef, useState } from 'react';
+import Head from 'next/head';
 
-import React, { useEffect, useRef, useState } from "react";
-import { Inter } from "next/font/google";
-import { motion, AnimatePresence } from "framer-motion";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import Lenis from "lenis";
-import Image from "next/image";
-import {
-  ArrowUpRight,
-  Monitor,
-  Video,
-  Layers,
-  Instagram,
-  Menu,
-  X,
-  ChevronRight
-} from "lucide-react";
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
+// ── ICONS ────────────────────────────────────────────────────────────────────
+const IconCheck = () => (
+  <svg viewBox="0 0 20 20" fill="none" className="w-5 h-5 text-[#FF6A00] flex-shrink-0 drop-shadow-[0_0_8px_rgba(255,106,0,0.8)]">
+    <circle cx="10" cy="10" r="9" stroke="#FF6A00" strokeWidth="1.5" />
+    <path d="M6 10l3 3 5-5" stroke="#FF6A00" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
 
-// --- Utilitários ---
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+const IconArrow = () => (
+  <svg viewBox="0 0 20 20" fill="none" className="w-5 h-5 group-hover:translate-x-1 transition-transform">
+    <path d="M4 10h12M11 5l5 5-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
 
-const inter = Inter({ subsets: ["latin"] });
+const IconX = () => (
+  <svg viewBox="0 0 20 20" fill="none" className="w-5 h-5 flex-shrink-0">
+    <circle cx="10" cy="10" r="9" stroke="#444" strokeWidth="1.5" />
+    <path d="M7 7l6 6M13 7l-6 6" stroke="#666" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+);
 
-// --- Componente: Cursor Customizado ---
-const CustomCursor = () => {
-  const cursorRef = useRef<HTMLDivElement>(null);
-  const [isTouch, setIsTouch] = useState(false);
+// ── DATA ─────────────────────────────────────────────────────────────────────
+const STATS = [
+  { number: '+340%', label: 'aumento médio em conversão' },
+  { number: '72h', label: 'entrega garantida' },
+  { number: '98%', label: 'clientes satisfeitos' },
+  { number: '5+', label: 'páginas entregues' },
+];
+
+const PROBLEMS = [
+  { bad: 'Página bonita que não vende nada', good: 'Copy estratégico que converte visitas em clientes' },
+  { bad: 'Template genérico igual ao concorrente', good: 'Identidade visual única e memorável' },
+  { bad: 'Carregamento lento = cliente perdido', good: 'Performance 95+ no PageSpeed — nada trava' },
+  { bad: 'Sem estratégia de CTA — o lead some', good: 'Funil visual que guia e converte' },
+];
+
+const SERVICES = [
+  {
+    icon: '⚡',
+    title: 'Landing Page Express',
+    desc: 'Para quem precisa vender rápido. Uma página focada, objetiva e que converte.',
+    tags: ['1 página', 'Copy incluso', '72h entrega'],
+  },
+  {
+    icon: '🔥',
+    title: 'Landing Page Premium',
+    desc: 'Estrutura completa com seções estratégicas, animações e integrações.',
+    tags: ['Multi-section', 'Animações', 'Pixel + CRM'],
+    highlight: true,
+  },
+  {
+    icon: '🚀',
+    title: 'Funil Completo',
+    desc: 'Da captura ao checkout — páginas conectadas em funil de alta conversão.',
+    tags: ['3–5 páginas', 'Thank you page', 'Upsell incluso'],
+  },
+];
+
+const PLANS = [
+  {
+    name: 'Express',
+    price: 'R$ 497',
+    desc: 'Ideal para validar oferta rápido',
+    features: ['1 landing page', 'Copy estratégico', 'Responsivo mobile', 'Entrega em 72h', '1 revisão'],
+    cta: 'Quero o Express',
+    highlight: false,
+  },
+  {
+    name: 'Premium',
+    price: 'R$ 997',
+    desc: 'O mais escolhido — máxima conversão',
+    features: ['Landing page completa', 'Copy + estrutura visual', 'Animações premium', '3 revisões', 'Suporte 30 dias'],
+    cta: 'Quero o Premium',
+    highlight: true,
+  },
+  {
+    name: 'Funil',
+    price: 'R$ 1.997',
+    desc: 'Para quem quer escalar de verdade',
+    features: ['Até 5 páginas', 'Funil completo', 'Automação de e-mail', 'Revisões ilimitadas', 'Suporte 60 dias'],
+    cta: 'Quero o Funil',
+    highlight: false,
+  },
+];
+
+const MARQUEE_ITEMS = [
+  'ALTA CONVERSÃO', '•', 'AUTORIDADE', '•', 'DESIGN CINEMATOGRÁFICO', '•',
+  'POSICIONAMENTO', '•', 'RESULTADOS REAIS', '•', 'SEU NEGÓCIO', '•',
+];
+
+// ── COMPONENTS ───────────────────────────────────────────────────────────────
+function Cursor() {
+  const dotRef = useRef<HTMLDivElement>(null);
+  const ringRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setIsTouch('ontouchstart' in window || navigator.maxTouchPoints > 0);
-    if (isTouch) return;
-
-    const moveCursor = (e: MouseEvent) => {
-      if (cursorRef.current) {
-        gsap.to(cursorRef.current, {
-          x: e.clientX,
-          y: e.clientY,
-          duration: 0.4,
-          ease: "power2.out",
-        });
+    const move = (e: MouseEvent) => {
+      if (dotRef.current) {
+        dotRef.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`;
       }
+      setTimeout(() => {
+        if (ringRef.current) {
+          ringRef.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`;
+        }
+      }, 100);
     };
-    window.addEventListener("mousemove", moveCursor);
-    return () => window.removeEventListener("mousemove", moveCursor);
-  }, [isTouch]);
-
-  if (isTouch) return null;
-
-  return (
-    <div
-      ref={cursorRef}
-      className="fixed top-0 left-0 w-6 h-6 border border-[#00FF41] rounded-full pointer-events-none z-[9999] mix-blend-difference flex items-center justify-center translate-x-[-50%] translate-y-[-50%]"
-    >
-      <div className="w-1 h-1 bg-[#00FF41] rounded-full" />
-    </div>
-  );
-};
-
-// --- Componente Principal ---
-export default function LandingPage() {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const lenisRef = useRef<Lenis | null>(null);
-  const whatsappUrl = "https://wa.me/5519997882182?text=Olá! Gostaria de um orçamento para produção de vídeo.";
-
-  useEffect(() => {
-    // Inicialização do Lenis (Smooth Scroll)
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-    });
-    lenisRef.current = lenis;
-
-    function raf(time: number) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
-    requestAnimationFrame(raf);
-
-    // Registro GSAP
-    gsap.registerPlugin(ScrollTrigger);
-
-    // Animação Hero
-    const tl = gsap.timeline();
-    tl.from(".hero-text", {
-      y: 100,
-      opacity: 0,
-      filter: "blur(20px)",
-      duration: 1.5,
-      stagger: 0.2,
-      ease: "power4.out"
-    });
-
-    // Animação Reveal de Texto (Seção Branca)
-    gsap.to(".reveal-content", {
-      scrollTrigger: {
-        trigger: ".reveal-section",
-        start: "top 80%",
-        end: "bottom 80%",
-        scrub: true,
-      },
-      color: "#00FF41",
-      stagger: 0.1
-    });
-
-    return () => {
-      lenis.destroy();
-    };
+    window.addEventListener('mousemove', move);
+    return () => window.removeEventListener('mousemove', move);
   }, []);
 
-  // Trava scroll quando menu está aberto
+  return (
+    <>
+      <div ref={dotRef} className="cursor-dot hidden md:block" />
+      <div ref={ringRef} className="cursor-ring hidden md:block" />
+    </>
+  );
+}
+
+function useReveal() {
   useEffect(() => {
-    if (menuOpen) {
-      lenisRef.current?.stop();
-    } else {
-      lenisRef.current?.start();
+    const els = document.querySelectorAll('.reveal');
+    const obs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.classList.add('visible');
+          }
+        });
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
+    );
+    els.forEach((el) => obs.observe(el));
+    return () => obs.disconnect();
+  }, []);
+}
+
+// ── STYLES ──
+const GlobalStyles = () => (
+  <style dangerouslySetInnerHTML={{
+    __html: `
+    :root {
+      --brand: #FF6A00;
+      --brand-dark: #cc5500;
+      --bg: #050505;
     }
-  }, [menuOpen]);
+    body {
+      background-color: var(--bg);
+      color: #F4F4F5;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+    }
+    
+    /* CURSOR SURREAL */
+    .cursor-dot, .cursor-ring {
+      position: fixed;
+      top: 0; left: 0;
+      pointer-events: none;
+      z-index: 9999;
+      mix-blend-mode: difference;
+      will-change: transform;
+    }
+    .cursor-dot {
+      width: 8px; height: 8px;
+      background: var(--brand);
+      border-radius: 50%;
+      margin: -4px 0 0 -4px;
+      box-shadow: 0 0 10px var(--brand);
+    }
+    .cursor-ring {
+      width: 44px; height: 44px;
+      border: 1px solid rgba(255,106,0,0.5);
+      border-radius: 50%;
+      margin: -22px 0 0 -22px;
+      transition: width 0.2s, height 0.2s;
+    }
+    
+    /* GRIDS & BLOBS */
+    .bg-grid {
+      background-size: 50px 50px;
+      background-image: linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+                        linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+    }
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(140px);
+      opacity: 0.2;
+      animation: float 12s infinite alternate ease-in-out;
+      pointer-events: none;
+    }
+    @keyframes float {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(50px, -50px) scale(1.2); }
+    }
+
+    /* TYPOGRAPHY */
+    .gradient-text {
+      background: linear-gradient(135deg, #FFFFFF 0%, #FFDDBA 50%, var(--brand) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-size: 200% auto;
+      animation: shine 5s linear infinite;
+    }
+    @keyframes shine {
+      to { background-position: 200% center; }
+    }
+    .text-glow {
+      text-shadow: 0 0 40px rgba(255, 106, 0, 0.6);
+    }
+    
+    /* EXTREME GLASSMORPHISM */
+    .glass-card {
+      background: rgba(15, 15, 15, 0.4);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.7), inset 0 0 32px rgba(255, 106, 0, 0.02);
+      transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .glass-card:hover {
+      background: rgba(20, 20, 20, 0.6);
+      border-color: rgba(255, 106, 0, 0.4);
+      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.8), 
+                  0 0 30px rgba(255, 106, 0, 0.2),
+                  inset 0 0 20px rgba(255, 106, 0, 0.1);
+      transform: translateY(-8px);
+    }
+    
+    /* ANIMATIONS */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    /* MARQUEE */
+    .marquee-wrapper { display: flex; overflow: hidden; white-space: nowrap; }
+    .marquee-track { display: flex; animation: marquee 20s linear infinite; }
+    @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+  `}} />
+);
+
+// ── PAGE ─────────────────────────────────────────────────────────────────────
+export default function Home() {
+  const [scrolled, setScrolled] = useState(false);
+  useReveal();
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   return (
-    <main className={cn(inter.className, "bg-[#080808] text-white selection:bg-[#00FF41] selection:text-black overflow-x-hidden")}>
-      <CustomCursor />
+    <>
+      <Head>
+        <title>MATTEO | Posicionamento & Conversão</title>
+        <meta name="description" content="Design cinematográfico que vende." />
+      </Head>
 
-      {/* Textura de ruído cinematográfico */}
-      <div className="fixed inset-0 pointer-events-none z-[9998] opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+      <GlobalStyles />
+      <Cursor />
 
-      {/* --- NAVBAR --- */}
-      <nav className="fixed top-0 w-full z-[100] flex justify-between items-center px-4 py-6 md:px-12 md:py-10 backdrop-blur-md bg-black/20">
-        <div className="z-[110]">
-          <Image src="/logo.svg" width={60} height={60} alt="Logo" className="w-12 h-12 md:w-16 md:h-16" />
-        </div>
-
-        {/* Desktop Menu Links */}
-        <div className="hidden md:flex gap-10 text-[10px] uppercase tracking-[0.4em] font-bold text-zinc-500">
-          <a href="#portfolio" className="hover:text-[#00FF41] transition-colors">Produções</a>
-          <a href="#processo" className="hover:text-[#00FF41] transition-colors">Processo</a>
-          <a href="#contato" className="hover:text-[#00FF41] transition-colors">Direção</a>
-        </div>
-
-        <div className="flex items-center gap-4 z-[110]">
-          <a href={whatsappUrl} target="_blank" className="hidden sm:block">
-            <button className="bg-white text-black px-6 py-2 text-[10px] font-black uppercase tracking-widest hover:bg-[#00FF41] transition-all">
-              Proposta
-            </button>
+      {/* ── NAVBAR ── */}
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? 'bg-[#050505]/80 backdrop-blur-2xl border-b border-white/5 py-3 md:py-4' : 'bg-transparent py-4 md:py-6'}`}>
+        <div className="max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between">
+          <div className="text-xl md:text-2xl font-black tracking-tighter text-white">
+            BONVENTO<span className="text-[#FF6A00]">.</span>
+          </div>
+          <a href="#planos" className="relative group overflow-hidden bg-transparent border border-[#FF6A00] text-white font-bold text-[10px] md:text-xs tracking-widest uppercase px-4 md:px-6 py-2 md:py-3 rounded-sm backdrop-blur-md">
+            <span className="relative z-10 group-hover:text-black transition-colors duration-300">INICIAR PROJETO</span>
+            <div className="absolute inset-0 bg-[#FF6A00] transform scale-x-0 origin-left group-hover:scale-x-100 transition-transform duration-500 ease-out z-0" />
           </a>
-          <button 
-            className="text-white hover:text-[#00FF41] transition-colors p-2" 
-            onClick={() => setMenuOpen(!menuOpen)}
-          >
-            {menuOpen ? <X size={32} /> : <Menu size={32} />}
-          </button>
         </div>
       </nav>
 
-      {/* --- MOBILE MENU OVERLAY (FULL SCREEN) --- */}
-      <AnimatePresence>
-        {menuOpen && (
-          <motion.div 
-            initial={{ y: "-100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "-100%" }}
-            transition={{ duration: 0.6, ease: [0.19, 1, 0.22, 1] }}
-            className="fixed inset-0 w-full h-screen bg-[#080808] z-[105] flex flex-col items-center justify-center px-6"
-          >
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[25vw] font-black text-white/[0.02] pointer-events-none uppercase select-none">
-              Menu
-            </div>
+      {/* ── HERO CENTRALIZADO ── */}
+      <section className="relative min-h-screen flex flex-col justify-center overflow-hidden pt-20 border-b border-white/5 bg-[#020202]">
 
-            <div className="flex flex-col items-center gap-6 md:gap-8 text-center relative z-10">
-              {[
-                { label: "Produções", href: "#portfolio" },
-                { label: "Processo", href: "#processo" },
-                { label: "Direção", href: "#contato" },
-              ].map((link, i) => (
-                <motion.a
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 + i * 0.1 }}
-                  key={link.label}
-                  href={link.href}
-                  onClick={() => setMenuOpen(false)}
-                  className="text-4xl md:text-8xl font-black uppercase tracking-tighter hover:text-[#00FF41] transition-colors"
-                >
-                  {link.label}
-                </motion.a>
-              ))}
-              
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.6 }}
-                className="mt-12 flex flex-col items-center gap-6"
-              >
-                <a href={whatsappUrl} target="_blank">
-                  <button className="bg-[#00FF41] text-black px-12 py-5 font-black uppercase tracking-widest text-sm active:scale-95 transition-transform">
-                    Solicitar Orçamento
-                  </button>
-                </a>
-                <div className="flex gap-8 text-zinc-500">
-                   <a href="https://www.instagram.com/obonvento/" target="_blank" className="hover:text-white transition-colors">
-                    <Instagram size={28} />
-                   </a>
-                </div>
-              </motion.div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* --- HERO SECTION --- */}
-      <section className="relative min-h-screen w-full flex items-center justify-center overflow-hidden px-4">
+        {/* IMAGEM DE FUNDO SUPER VISÍVEL */}
         <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-[#080808] z-10" />
-          <video autoPlay muted loop playsInline className="w-full h-full object-cover grayscale opacity-30 brightness-[0.4]">
-            <source src="https://assets.mixkit.co/videos/preview/mixkit-set-of-plateaus-seen-from-above-in-a-rocky-landscape-44456-large.mp4" type="video/mp4" />
-          </video>
+          <img
+            src="/MATTEO.webp"
+            alt="Matteo Posicionamento"
+            /* Ajuste de object-position: foca no centro-topo no mobile, centro no desktop */
+            className="absolute inset-0 h-full w-full object-cover object-[center_top] md:object-center opacity-100"
+          />
+          {/* Sombras suaves apenas nas bordas (menu e rodapé da seção) */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/60 via-[#050505]/20 to-[#050505]/90 md:via-transparent" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_10%,#050505_100%)] md:bg-[radial-gradient(circle_at_center,transparent_20%,#050505_100%)] opacity-80 md:opacity-60" />
         </div>
 
-        <div className="container mx-auto z-20 pt-20">
-          <div className="max-w-6xl text-center md:text-left">
-            <h1 className="hero-text text-4xl sm:text-6xl md:text-8xl lg:text-[9rem] font-black leading-[0.9] md:leading-[0.8] tracking-tighter mb-8 md:mb-10 uppercase">
-              CONSTRUINDO <br />
-              <span className="text-[#00FF41]">VISÃO.</span>
-            </h1>
-            <div className="hero-text max-w-2xl border-l border-[#00FF41] pl-4 md:pl-8 py-2 mx-auto md:mx-0">
-              <p className="text-base md:text-2xl text-zinc-400 font-light mb-8 uppercase tracking-tight leading-snug">
-                Produção de vídeo profissional: Comerciais, aftermovies e reels com direção estratégica.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-                <a href={whatsappUrl} target="_blank" className="w-full sm:w-auto">
-                  <button className="w-full bg-[#00FF41] text-black px-8 py-4 md:px-10 md:py-5 font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:scale-105 transition-transform">
-                    Iniciar Projeto <ArrowUpRight size={20} />
-                  </button>
-                </a>
-                <a href="#portfolio" className="w-full sm:w-auto">
-                  <button className="w-full border border-zinc-800 text-white px-8 py-4 md:px-10 md:py-5 font-black uppercase tracking-widest hover:border-white transition-all text-center">
-                    Portfolio
-                  </button>
-                </a>
+        {/* BLOBS DE LUZ */}
+        <div className="blob bg-[#FF6A00] w-[600px] h-[600px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mix-blend-screen opacity-10" />
+
+        <div className="max-w-5xl mx-auto px-4 md:px-6 py-20 md:py-32 relative z-10 w-full flex flex-col items-center text-center mt-10 md:mt-0">
+
+          {/* <div className="inline-flex items-center justify-center gap-3 mb-6 md:mb-8 reveal visible">
+            <div className="glass-card px-4 md:px-5 py-2 rounded-full border border-[#FF6A00]/30 backdrop-blur-md">
+              <span className="font-bold text-[9px] md:text-[10px] tracking-widest uppercase text-[#FFDDBA]">
+                <span className="text-[#FF6A00] animate-pulse inline-block mr-2">●</span> POSICIONAMENTO HIGH-TICKET
+              </span>
+            </div>
+          </div> */}
+
+          {/* TÍTULO MENOR E RESPONSIVO */}
+          <h1 className="text-[clamp(2.25rem,5vw,4.5rem)] font-black leading-[0.9] tracking-tighter mb-6 md:mb-8 max-w-3xl mx-auto drop-shadow-2xl">
+            <br /><br />
+            <span className="block text-white reveal" style={{ transitionDelay: '0.1s' }}>
+              AUTORIDADE
+            </span>
+            <span className="block gradient-text text-glow reveal" style={{ transitionDelay: '0.2s' }}>
+              INQUESTIONÁVEL.
+            </span>
+
+          </h1>
+
+          <p className="text-base md:text-lg text-white/90 max-w-2xl leading-relaxed mb-8 md:mb-12 reveal glass-card p-5 md:p-6 rounded-lg border-t-4 border-t-[#FF6A00] mx-auto shadow-2xl" style={{ transitionDelay: '0.4s' }}>
+            Elevamos a percepção de valor da sua marca com design cinematográfico e copy agressivo. Não é apenas uma página. <strong className="text-white">É o seu novo patamar.</strong>
+          </p>
+
+          <div className="flex flex-wrap items-center justify-center gap-6 reveal" style={{ transitionDelay: '0.5s' }}>
+            <a href="#planos" className="group relative flex items-center justify-center gap-3 bg-[#FF6A00] text-black font-black text-xs md:text-sm tracking-widest uppercase px-8 md:px-10 py-4 md:py-5 overflow-hidden transition-all duration-300 hover:shadow-[0_0_40px_rgba(255,106,0,0.5)] rounded-sm">
+              VER PLANOS
+              <IconArrow />
+            </a>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mt-16 md:mt-24 pt-8 md:pt-12 border-t border-white/10 max-w-4xl w-full reveal" style={{ transitionDelay: '0.6s' }}>
+            {STATS.map((s) => (
+              <div key={s.number} className="group cursor-default flex flex-col items-center">
+                <div className="text-2xl md:text-4xl font-black text-white group-hover:text-[#FF6A00] transition-colors duration-300 text-glow drop-shadow-lg">{s.number}</div>
+                <div className="text-[9px] md:text-[10px] font-bold tracking-widest uppercase text-white/60 mt-2 text-center drop-shadow-md">{s.label}</div>
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* --- PORTFOLIO --- */}
-      <section id="portfolio" className="py-20 md:py-32 px-4 md:px-12 bg-black border-y border-zinc-900">
-        <div className="container mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 md:mb-24 gap-6">
-            <h2 className="text-4xl md:text-8xl font-black tracking-tighter uppercase leading-none">
-              Projetos<br />
-              <span className="text-zinc-800">Selecionados</span>
-            </h2>
-            <div className="text-zinc-500 font-mono text-xs md:text-sm tracking-widest uppercase md:mb-4">
-              // Excelência Visual
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {[
-              {
-                title: "Aftermovie",
-                tag: "MIZA DJ",
-                link: "https://www.instagram.com/p/DVRaqz4kc1l/",
-                thumb: "/perfil-miza.png"
-              },
-              {
-                title: "Filmagem Evento",
-                tag: "MIZA DJ",
-                link: "https://www.instagram.com/p/DVRZ0OPDsrK/",
-                thumb: "/Miza.png"
-              }
-            ].map((item, i) => (
-              <a
-                key={i}
-                href={item.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group relative h-[400px] md:h-[650px] overflow-hidden p-6 md:p-12 flex flex-col justify-between bg-zinc-950 transition-all"
-              >
-                <div
-                  className="absolute inset-0 z-0 transition-all duration-1000 ease-in-out grayscale group-hover:grayscale-0 group-hover:scale-110 opacity-40 group-hover:opacity-60"
-                  style={{
-                    backgroundImage: `url(${item.thumb})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center'
-                  }}
-                />
-                <div className="absolute inset-0 z-1 bg-gradient-to-t from-black via-black/20 to-transparent" />
-
-                <div className="relative z-10 flex justify-between items-start">
-                  <div className="text-[#00FF41] p-2 border border-[#00FF41]/20 rounded-full backdrop-blur-sm group-hover:bg-[#00FF41] group-hover:text-black transition-all duration-500">
-                    <Video size={20} className="md:w-6 md:h-6" />
-                  </div>
-                  <span className="text-[8px] md:text-[10px] font-mono tracking-[0.3em] text-zinc-500 group-hover:text-[#00FF41]">
-                    {item.tag}
-                  </span>
-                </div>
-
-                <div className="relative z-10">
-                  <h3 className="text-2xl md:text-4xl font-black mb-4 md:mb-6 tracking-tighter uppercase leading-none transition-all group-hover:tracking-wider">
-                    {item.title}
-                  </h3>
-                  <div className="h-1 w-0 bg-[#00FF41] group-hover:w-full transition-all duration-700 ease-out" />
-                </div>
-              </a>
             ))}
           </div>
         </div>
       </section>
 
-      {/* --- REVEAL SECTION --- */}
-      <section className="reveal-section py-32 md:py-60 bg-white text-black overflow-hidden px-4">
-        <div className="container mx-auto text-center">
-          <h2 className="reveal-content text-3xl sm:text-5xl md:text-[7.5rem] font-black tracking-tighter leading-tight md:leading-[0.85] uppercase">
-            Imagem é posicionamento. <br className="hidden md:block" />
-            O vídeo não é apenas registro. <br className="hidden md:block" />
-            É construção de percepção.
-          </h2>
+      {/* ── MARQUEE ── */}
+      <div className="bg-[#FF6A00] py-4 overflow-hidden border-y border-[#FF6A00] relative z-10 shadow-[0_0_50px_rgba(255,106,0,0.2)]">
+        <div className="marquee-wrapper">
+          <div className="marquee-track">
+            {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((item, i) => (
+              <span key={i} className={`text-xl font-black tracking-widest mx-6 ${item === '•' ? 'text-black/30' : 'text-black'}`}>
+                {item}
+              </span>
+            ))}
+          </div>
         </div>
-      </section>
+      </div>
 
-      {/* --- PROCESS SECTION --- */}
-      <section id="processo" className="py-20 md:py-40 px-4 md:px-12 bg-[#080808]">
-        <div className="container mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 md:gap-20 items-center">
-            <div>
-              <h2 className="text-4xl md:text-6xl font-black tracking-tighter mb-10 md:mb-16 uppercase underline decoration-[#00FF41]">
-                Processo <br />Estruturado.
-              </h2>
-              <div className="space-y-8 md:space-y-12">
-                {[
-                  { id: "01", t: "Briefing Estratégico", d: "Entendimento da marca e público-alvo." },
-                  { id: "02", t: "Direção Visual", d: "Planejamento de narrativa e estética cinematográfica." },
-                  { id: "03", t: "Captura High-End", d: "Qualidade Visual Avançada e Técnica apurada." },
-                  { id: "04", t: "Pós-Produção", d: "Edição, color grading e sound design imersivo." }
-                ].map((step, i) => (
-                  <div key={i} className="flex gap-4 md:gap-8 group">
-                    <span className="text-[#00FF41] font-black text-xl md:text-2xl group-hover:scale-125 transition-transform">{step.id}</span>
-                    <div>
-                      <h4 className="text-lg md:text-xl font-bold uppercase mb-2">{step.t}</h4>
-                      <p className="text-zinc-500 text-xs md:text-sm leading-relaxed max-w-xs">{step.d}</p>
-                    </div>
+      {/* ── PROBLEMAS / SOLUÇÕES ── */}
+      <section id='#Resultados' className="py-24 md:py-32 px-6 relative bg-[#050505]">
+        <div className="absolute inset-0 bg-grid z-0" />
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-96 h-96 bg-[#FF6A00]/5 blur-[100px] pointer-events-none rounded-full" />
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="mb-16 md:mb-20 reveal text-center md:text-left">
+            <h2 className="text-[clamp(2rem,5vw,4.5rem)] font-black leading-[0.9] text-white tracking-tighter">
+              A MAIORIA DAS LPs<br />
+              <span className="text-white/20">SÓ GASTA SEU DINHEIRO.</span>
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            {PROBLEMS.map((p, i) => (
+              <div key={i} className="reveal glass-card p-1 relative overflow-hidden group rounded-xl" style={{ transitionDelay: `${i * 0.1}s` }}>
+                <div className="grid grid-cols-1 md:grid-cols-2 h-full gap-px bg-white/5 rounded-lg overflow-hidden">
+                  <div className="bg-[#080808] p-6 md:p-8 flex flex-col gap-4">
+                    <IconX />
+                    <p className="text-sm text-white/40 leading-relaxed font-medium">{p.bad}</p>
                   </div>
-                ))}
+                  <div className="bg-[#0c0c0c] p-6 md:p-8 flex flex-col gap-4 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#FF6A00]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <IconCheck />
+                    <p className="text-sm text-white/90 leading-relaxed font-medium relative z-10">{p.good}</p>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="relative order-first lg:order-last">
-              <div className="w-full aspect-square md:h-[600px] rounded-3xl md:rounded-4xl border border-zinc-900 overflow-hidden relative">
-                <Image src="/matteo.png" alt="Matteo Bonvento" fill className="object-cover" priority />
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* --- CTA FINAL (MARQUEE) --- */}
-      <section className="py-24 md:py-40 px-4 bg-[#00FF41] text-black text-center relative overflow-hidden group">
-        <motion.div
-          initial={{ x: 0 }}
-          animate={{ x: "-50%" }}
-          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-          className="absolute top-0 left-0 whitespace-nowrap text-[8rem] md:text-[15rem] font-black opacity-10 pointer-events-none select-none"
-        >
-          DIRECTED BY MATTEO • DIRECTED BY MATTEO • DIRECTED BY MATTEO •
-        </motion.div>
+      {/* ── SERVICES ── */}
+      <section id="expertise" className="py-24 md:py-32 px-6 bg-[#030303] border-t border-white/5 relative overflow-hidden">
+        <div className="absolute right-0 top-0 w-96 h-96 bg-[#FF6A00]/10 blur-[120px] pointer-events-none rounded-full" />
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="mb-16 md:mb-20 reveal text-center md:text-left">
+            <h2 className="text-[clamp(2rem,5vw,4.5rem)] font-black leading-[0.9] text-white tracking-tighter">
+              NÓS ENTREGAMOS<br />
+              <span className="gradient-text">MÁQUINAS DE VENDA.</span>
+            </h2>
+          </div>
 
-        <div className="relative z-10">
-          <h2 className="text-4xl sm:text-6xl md:text-[10rem] font-black tracking-tighter mb-8 md:mb-12 uppercase leading-none">
-            Bora Gerar <br /> Impacto.
+          <div className="grid md:grid-cols-3 gap-8">
+            {SERVICES.map((s, i) => (
+              <div key={i} className={`reveal glass-card p-8 md:p-10 flex flex-col gap-6 relative rounded-2xl ${s.highlight ? 'border-[#FF6A00]/50 shadow-[0_0_40px_rgba(255,106,0,0.15)] bg-[#0A0A0A]' : ''}`} style={{ transitionDelay: `${i * 0.15}s` }}>
+                {s.highlight && (
+                  <div className="absolute top-0 right-8 md:right-10 -translate-y-1/2 bg-[#FF6A00] px-4 py-1.5 shadow-[0_0_20px_rgba(255,106,0,0.5)] rounded-sm">
+                    <span className="font-bold text-[10px] tracking-widest uppercase text-black">MAIS POPULAR</span>
+                  </div>
+                )}
+                <div className="text-4xl">{s.icon}</div>
+                <div>
+                  <h3 className="text-xl md:text-2xl font-black text-white tracking-tight mb-3">{s.title}</h3>
+                  <p className="text-sm text-white/50 leading-relaxed">{s.desc}</p>
+                </div>
+                <div className="flex flex-wrap gap-2 mt-auto pt-6">
+                  {s.tags.map((tag) => (
+                    <span key={tag} className="text-[9px] font-bold tracking-widest uppercase px-3 py-1.5 bg-white/5 text-white/70 border border-white/10 rounded-full">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── PRICING ── */}
+      <section id="planos" className="py-24 md:py-32 px-6 relative bg-[#050505]">
+        <div className="absolute inset-0 bg-grid opacity-30 z-0" />
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="mb-16 md:mb-24 reveal text-center">
+            <h2 className="text-[clamp(2rem,5vw,4.5rem)] font-black leading-[0.9] text-white tracking-tighter">
+              O PREÇO DO<br />
+              <span className="gradient-text">POSICIONAMENTO.</span>
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 items-stretch max-w-5xl mx-auto">
+            {PLANS.map((plan, i) => (
+              <div key={i} className={`reveal glass-card flex flex-col p-8 md:p-10 relative rounded-2xl ${plan.highlight ? 'border-[#FF6A00]/50 shadow-[0_0_60px_rgba(255,106,0,0.15)] md:scale-105 z-10 bg-[#0c0c0c]' : 'bg-[#080808]'}`} style={{ transitionDelay: `${i * 0.12}s` }}>
+                {plan.highlight && (
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#FF6A00] px-6 py-1.5 shadow-[0_0_20px_rgba(255,106,0,0.5)] rounded-sm whitespace-nowrap">
+                    <span className="font-bold text-[10px] tracking-widest uppercase text-black">A ESCOLHA DOS GRANDES</span>
+                  </div>
+                )}
+
+                <p className="font-bold text-[10px] tracking-widest uppercase text-[#FF6A00] mb-4">{plan.name}</p>
+                <div className="text-4xl md:text-5xl font-black text-white tracking-tighter mb-2">{plan.price}</div>
+                <p className="text-xs text-white/40 mb-10 pb-10 border-b border-white/10">{plan.desc}</p>
+
+                <ul className="flex flex-col gap-5 mb-12 flex-1">
+                  {plan.features.map((f) => (
+                    <li key={f} className="flex items-center gap-4">
+                      <IconCheck />
+                      <span className="text-sm font-medium text-white/80">{f}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <a href="#contato" className={`w-full text-center font-bold text-xs tracking-widest uppercase px-6 py-5 transition-all duration-300 rounded-sm ${plan.highlight ? 'bg-[#FF6A00] text-black hover:bg-white hover:shadow-[0_0_20px_rgba(255,255,255,0.5)]' : 'bg-transparent text-white hover:bg-white hover:text-black border border-white/20'}`}>
+                  {plan.cta}
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA FINAL ── */}
+      <section id="contato" className="relative py-32 md:py-40 px-6 bg-[#FF6A00] overflow-hidden">
+        <div className="absolute inset-0 bg-grid opacity-20 mix-blend-multiply" />
+
+        <div className="relative max-w-4xl mx-auto text-center z-10">
+          <h2 className="text-[clamp(2.5rem,8vw,6rem)] font-black leading-[0.85] text-[#050505] tracking-tighter mb-8 reveal">
+            VAMOS ESCALAR<br />SEU NEGÓCIO.
           </h2>
-          <a href={whatsappUrl} target="_blank">
-            <button className="bg-black text-[#00FF41] px-10 py-6 md:px-20 md:py-10 text-lg md:text-2xl font-black uppercase tracking-widest hover:scale-105 transition-transform shadow-2xl active:scale-95">
-              Solicitar Orçamento
-            </button>
-          </a>
-        </div>
-      </section>
-
-      {/* --- FOOTER --- */}
-      <footer id="contato" className="py-12 md:py-20 px-4 md:px-12 bg-black border-t border-zinc-900">
-        <div className="container mx-auto flex flex-col md:flex-row justify-between items-center gap-8 text-center md:text-left">
-          <div className="flex flex-col items-center md:items-start">
-            <div className="text-2xl md:text-3xl font-black tracking-tighter text-[#00FF41]">
-              <a href="https://www.instagram.com/obonvento/" target="_blank" rel="noopener noreferrer">@obonvento</a>
-            </div>
-            <p className="text-zinc-600 text-[10px] mt-2 font-bold tracking-[0.2em] uppercase">Clica e Me Segue!</p>
-          </div>
-          <div className="flex gap-8">
-            <a href="https://www.instagram.com/obonvento/" target="_blank" className="text-zinc-400 hover:text-white transition-colors">
-              <Instagram size={28} />
+          <p className="text-base md:text-xl text-black/80 font-bold max-w-xl mx-auto mb-12 reveal" style={{ transitionDelay: '0.1s' }}>
+            Me chame no WhatsApp agora. Em 72 horas o seu novo posicionamento estará no ar.
+          </p>
+          <div className="reveal" style={{ transitionDelay: '0.2s' }}>
+            <a href="https://wa.me/5519997882182?text=Quero+elevar+meu+posicionamento" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-4 bg-[#050505] text-[#FF6A00] font-black text-xs tracking-widest uppercase px-8 md:px-10 py-5 md:py-6 hover:bg-white hover:text-black hover:shadow-2xl transition-all duration-300 group rounded-sm shadow-[0_15px_30px_rgba(0,0,0,0.5)]">
+              💬 INICIAR ATENDIMENTO
+              <IconArrow />
             </a>
           </div>
-          <div className="text-zinc-600 font-mono text-[9px] md:text-[10px] uppercase tracking-tighter">
-            © {new Date().getFullYear()} — Todos os direitos reservados — Matteo Bonvento
+        </div>
+      </section>
+
+      {/* ── FOOTER ── */}
+      <footer className="bg-[#020202] py-12 px-6 border-t border-white/5 relative z-10">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
+          <div className="text-xl font-black tracking-tighter text-white">
+            BONVENTO<span className="text-[#FF6A00]">.</span>
+          </div>
+          <p className="font-bold text-[9px] tracking-widest uppercase text-white/30">
+            © {new Date().getFullYear()} — MATTEO BONVENTO - TODOS OS DIREITOS RESERVADOS
+          </p>
+          <div className="flex flex-wrap justify-center gap-6 md:gap-8">
+            {['Instagram'].map((item) => (
+              <a key={item} href="https://www.instagram.com/obonvento" className="font-bold text-[9px] tracking-widest uppercase text-white/30 hover:text-[#FF6A00] transition-colors duration-300">
+                {item}
+              </a>
+            ))}
           </div>
         </div>
       </footer>
-    </main>
+    </>
   );
 }
